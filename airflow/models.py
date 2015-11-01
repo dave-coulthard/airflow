@@ -1082,6 +1082,9 @@ class TaskInstance(Base):
                 .first()
             )
             run_id = dag_run.run_id if dag_run else None
+            session.expunge_all()
+            session.commit()
+
         if task.params:
             params.update(task.params)
 
@@ -2633,10 +2636,10 @@ class DagRun(Base):
 
     id = Column(Integer, primary_key=True)
     dag_id = Column(String(ID_LEN))
-    execution_date = Column(DateTime)
+    execution_date = Column(DateTime, default=datetime.now())
     state = Column(String(50), default=State.RUNNING)
     run_id = Column(String(ID_LEN))
-    external_trigger = Column(Boolean, default=False)
+    external_trigger = Column(Boolean, default=True)
     conf = Column(PickleType)
 
     __table_args__ = (

@@ -350,10 +350,13 @@ class SchedulerJob(BaseJob):
                 DagRun.external_trigger == False
             ))
             last_scheduled_run = qry.scalar()
+            next_run_date = None
             if not last_scheduled_run:
                 next_run_date = min([t.start_date for t in dag.tasks])
             elif dag.schedule_interval != '@once':
                 next_run_date = dag.following_schedule(last_scheduled_run)
+            elif dag.schedule_interval == '@once' and not last_scheduled_run:
+                next_run_date = datetime.now()
 
             if next_run_date and next_run_date <= datetime.now():
                 next_run = DagRun(
@@ -385,8 +388,7 @@ class SchedulerJob(BaseJob):
                 executors.LocalExecutor, executors.SequentialExecutor):
             pickle_id = dag.pickle(session).id
 
-        db_dag = session.query(
-            DagModel).filter(DagModel.dag_id == dag.dag_id).first()
+        db_dag = session.query(DagModel).filter_by(dag_id=dag.dag_id).first()
         last_scheduler_run = db_dag.last_scheduler_run or datetime(2000, 1, 1)
         secs_since_last = (
             datetime.now() - last_scheduler_run).total_seconds()

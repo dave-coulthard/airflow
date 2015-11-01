@@ -1771,12 +1771,15 @@ class JobModelView(ModelViewOnly):
         state=state_f,
         latest_heartbeat=datetime_f)
 
+
 class DagRunModelView(ModelViewOnly):
     verbose_name_plural = "DAG Runs"
     can_delete = True
     can_edit = True
+    can_create = True
     column_editable_list = ('state',)
     verbose_name = "dag run"
+    column_default_sort = ('execution_date', True)
     form_choices = {
         'state': [
             ('success', 'success'),
